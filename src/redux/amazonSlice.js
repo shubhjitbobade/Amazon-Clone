@@ -28,13 +28,24 @@ export  const amazonSlice=createSlice({
                 item.quantity--
             }
             },
+            // Delete Item From Cart
             deleteItem:(state,action)=>{
                 state.products=state.products.filter((item)=>item.id !== action.payload);
             },
+            // Reset Cart To Intital State
             resetCart:(state)=>{
                 state.products=[];
+            },
+            // Product Reducer End Here
+            // UserInfo Reducer Start Here 
+                   // User Authantication
+            setUserInfo:(state,action)=>{
+                state.userInfo=action.payload
+            },
+            userSignOut:(state)=>{
+                    state.userInfo=null
             }
          }
     })
-export const{addTocart,deleteItem,resetCart,incrementQuantity,decrementQuantity}=amazonSlice.actions;
+export const{addTocart,deleteItem,resetCart,incrementQuantity,decrementQuantity,setUserInfo,userSignOut}=amazonSlice.actions;
 export default amazonSlice.reducer;

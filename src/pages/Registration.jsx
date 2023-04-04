@@ -1,16 +1,18 @@
 import React from 'react'
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import {darkLogo} from '../assets/index'
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import {RotatingLines}from 'react-loader-spinner'
+import {motion}from 'framer-motion'
+import { getAuth, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 
 
 
 function Registration() {
-
+  const navigate=useNavigate()
   const auth = getAuth();
-
+  const[firebaseErr,setFirebaseErr]=useState("");
 
   const[clientName,setClientName]=useState("");
   const[email,setEmail]=useState("");
@@ -23,6 +25,10 @@ function Registration() {
   const[errPassword,setErrPassword]=useState("");
   const[errCPassword,setErrCPassword]=useState("");
 
+  //Loading state starts
+  const[Loading,setLoading]=useState(false);
+  const[successMsg,setSuccessMsg]=useState("");
+
 // Handle function Start 
  const handleName=(e)=>{
   setClientName(e.target.value)
@@ -31,6 +37,7 @@ function Registration() {
  const handleEmail=(e)=>{
   setEmail(e.target.value)
   setErrEmail("")
+  setFirebaseErr("")
  }
  const handlePassword=(e)=>{
   setPassword(e.target.value)
@@ -76,20 +83,28 @@ const emailValidation=(email)=>{
    }
    if(clientName && email && emailValidation(email) && password && password.length >= 6 && 
    cPassword && cPassword === password ){
-    // console.log(clientName,email, password ,cPassword)
-    createUserWithEmailAndPassword(auth, email, password)
+    setLoading(true)
+      createUserWithEmailAndPassword(auth, email, password)
         .then((userCredential) => {
+          updateProfile(auth.currentUser,{
+            displayName:clientName,
+            photoURL:"https://www.google.com/imgres?imgurl=https%3A%2F%2Fwww.cricket.com.au%2F-%2Fmedia%2F2CF46473B1DA4AA5A30AC078804CA5DF.ashx&tbnid=c1AdbDChj-nQdM&vet=12ahUKEwjHg9_E_Yv-AhWZ2XMBHQGVCzkQMygIegUIARDzAQ..i&imgrefurl=https%3A%2F%2Fwww.cricket.com.au%2Fplayers%2Fvirat-kohli%2FuLebDysdakSh5JymAWzQRQ&docid=ig8iUQZ5N0CYZM&w=350&h=509&q=virat%20kohli&ved=2ahUKEwjHg9_E_Yv-AhWZ2XMBHQGVCzkQMygIegUIARDzAQ"
+          })
           // Signed in 
           const user = userCredential.user;
-          console.log(user);
+          setLoading(false)
+          setSuccessMsg("Account Created Successfully !")
+          setTimeout(()=>{
+            navigate("/signin")
+          },3000)
           // ...
         })
         .catch((error) => {
           const errorCode = error.code;
-          const errorMessage = error.message;
-          console.log(error);
-
-          // ..
+          if(errorCode.includes("auth/email-already-in-use")){
+            setFirebaseErr("Email aready in use, Try another one")
+          }
+           // ..
         });
 
 // ------------------------FireBase Registra End Here----------------------------------------
@@ -98,6 +113,8 @@ const emailValidation=(email)=>{
     setEmail("")
     setPassword("")
     setCPassword("")
+    setErrCPassword("")
+    setFirebaseErr("")
    }
     
   }
@@ -152,6 +169,15 @@ const emailValidation=(email)=>{
                           </p>
                        )
                   }
+                {
+                   firebaseErr &&(
+                         <p className='text-red-600 text-xs font-semibold tracking-wide 
+                          flex items-center gap-2 -mt-1.5'>
+                            <span className=' italic font-titleFont font-extrabold text-base'>!</span>
+                          {firebaseErr}
+                          </p>
+                       )
+                  }
                <div className='flex flex-col gap-2'>
                   <p className='text-sm font-medium'>Password</p>
                    <input 
@@ -159,6 +185,7 @@ const emailValidation=(email)=>{
                             rounded-sm outline-none focus-within:border-[#e77600] 
                             focus-within:shadow-amazonInput duration-100' 
                     type="password"
+                    autoComplete="on"
                     value={password}
                     onChange={handlePassword}
                      />
@@ -179,6 +206,7 @@ const emailValidation=(email)=>{
                               rounded-sm outline-none focus-within:border-[#e77600] 
                               focus-within:shadow-amazonInput duration-100' 
                       type="password"
+                      autoComplete="on"
                       value={cPassword}
                       onChange={handleCPassword}
                       />
@@ -202,6 +230,32 @@ const emailValidation=(email)=>{
                         border-zinc-400 active:border-yellow-800 active:shadow-amazonInput'
                >Continue
               </button>
+              {
+                Loading &&(
+                  <div className='flex justify-center '>
+                    <RotatingLines
+                      strokeColor="#febd69"
+                      strokeWidth="5"
+                      animationDuration="0.75"
+                      width="50"
+                      visible={true}
+                   />
+                  </div>
+                )
+              }
+              {
+                successMsg &&(
+                  <div>
+                    <motion.p
+                    initial={{y:0, opacity:0}}
+                    animate={{y:0, opacity:1}}
+                    transition={{duration:0.5}}
+                    className='text-base font-titleFont font-semibold text-green-500 border-[1px]
+                    border-green-500 px-2 text-center'
+                    >{successMsg}</motion.p>
+                  </div>
+                )
+              }
            </div>
            <p className='text-xs text-black leading-5 mt-4 '>By continuing, you agree to Amazon's 
                         <span className='text-blue-600  hover:text-orange-700

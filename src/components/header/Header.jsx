@@ -7,12 +7,29 @@ import SearchIcon from '@mui/icons-material/Search';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import { allItems } from '../../constants';
 import { Link } from 'react-router-dom';
-import {useSelector} from 'react-redux'
+import {useDispatch, useSelector} from 'react-redux'
+import LogoutIcon from '@mui/icons-material/Logout';
+import { getAuth, signOut } from "firebase/auth";
+import { userSignOut } from '../../redux/amazonSlice';
+
 
 const Header=()=>{
+    const dispatch=useDispatch()
+    const auth = getAuth();
     const [showAll,setShowAll]=useState(false);
     const products=useSelector((state)=>state.amazon.products)
-    
+    const userInfo=useSelector((state)=>state.amazon.userInfo)
+
+
+    const handleLogOut=()=>{
+        signOut(auth).then(() => {
+            // Sign-out successful.
+            dispatch(userSignOut())
+
+          }).catch((error) => {
+            // An error happened.
+          });
+    }
     return(
         <div className='w-full sticky top-0 z-50 '>
             <div className='w-full bg-amazon_blue text-white px-4 py-3 flex items-center gap-4'>
@@ -72,7 +89,21 @@ const Header=()=>{
 
             <Link  to="/signin">
                 <div className='flex flex-col items-start justify-center headerHover'>
-                    <p className='text-sm mdl:text-xs text-white mdl:text-lightText font-light'>Hello, Sign in</p>
+                    {
+                        userInfo ?(
+                            <p 
+                            className='text-sm mdl:text-xs text-white mdl:text-lightText
+                             font-light'>
+                            {userInfo.userName}
+                        </p>
+                        ):(
+                            <p
+                                className='text-sm mdl:text-xs text-white mdl:text-lightText 
+                                font-light'>
+                                Hello, Sign in
+                            </p>
+                        )
+                    }
                     <p className='text-sm font-semibold -mt-1 text-whiteText hidden mdl:inline-flex'> 
                     Accounts & List {" "}<span><ArrowDropDownIcon /></span></p>
                 </div>
@@ -99,6 +130,18 @@ const Header=()=>{
             </div>
            </Link>
             {/* ---------------------------------Cart End Here--------------------------------- */}
+            {
+                userInfo && (
+                    <div
+                        onClick={handleLogOut} 
+                        className='flex flex-col justify-center items-center headerHover relative'>
+                        <LogoutIcon />
+                        <p 
+                        className='hidden mdl:inline-flex text-xs font-semibold text-whiteText'
+                        >Log out</p>
+                    </div>
+                )
+            }
        </div>
        <HeaderBottom />
         </div>
